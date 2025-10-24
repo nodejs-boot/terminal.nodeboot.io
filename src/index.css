@@ -1,0 +1,308 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Nodeboot Matrix Green Color System - HSL Format */
+    --background: 0 0% 7%;                    /* Deep dark background #121212 */
+    --foreground: 146 80% 85%;                /* Light green text #B8F5CD */
+    
+    --primary: 146 100% 45%;                  /* Nodeboot green #00E65C */
+    --primary-glow: 146 100% 60%;             /* Bright green glow #26FF80 */
+    --primary-dark: 146 100% 25%;             /* Dark green #007F33 */
+    
+    --secondary: 146 50% 15%;                 /* Dark green #132619 */
+    --secondary-foreground: 146 80% 85%;      /* Light green */
+    
+    --accent: 146 100% 50%;                   /* Neon green accent #00FF5E */
+    --accent-foreground: 0 0% 7%;             /* Dark text on accent */
+    
+    --muted: 146 30% 12%;                     /* Muted dark green #15211A */
+    --muted-foreground: 146 50% 60%;          /* Muted green text #59B377 */
+    
+    --card: 146 40% 10%;                      /* Card background #0D1A12 */
+    --card-foreground: 146 80% 85%;           /* Card text */
+    
+    --border: 146 50% 20%;                    /* Green border #195A2E */
+    --border-glow: 146 100% 50%;              /* Neon border for effects */
+    
+    --ring: 146 100% 45%;                     /* Focus ring */
+    
+    --success: 146 100% 45%;                  /* Success green */
+    --warning: 45 100% 50%;                   /* Warning yellow */
+    --destructive: 0 70% 50%;                 /* Error red */
+    
+    /* Matrix Effects */
+    --matrix-rain: 146 100% 50%;              /* Matrix rain effect */
+    --terminal-cursor: 146 100% 60%;          /* Blinking cursor */
+    --code-highlight: 146 80% 30%;            /* Code highlight */
+    
+    /* Gradients */
+    --gradient-matrix: linear-gradient(135deg, hsl(146 100% 15%), hsl(146 100% 30%));
+    --gradient-glow: radial-gradient(circle at center, hsl(146 100% 50% / 0.2), transparent 70%);
+    --gradient-hero: linear-gradient(180deg, hsl(146 100% 8%), hsl(146 50% 5%));
+    
+    /* Shadows */
+    --shadow-glow: 0 0 40px hsl(146 100% 50% / 0.4), 0 0 80px hsl(146 100% 50% / 0.2);
+    --shadow-card: 0 8px 32px hsl(146 100% 20% / 0.3), 0 0 20px hsl(146 100% 50% / 0.1);
+    --shadow-elevated: 0 16px 48px hsl(146 100% 20% / 0.4), 0 0 30px hsl(146 100% 50% / 0.2);
+    
+    /* Animations */
+    --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    /* Border Radius */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Fira Code', 'Space Mono', monospace;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  
+  code {
+    font-family: 'Fira Code', source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  }
+  
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-secondary;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary;
+    border-radius: 5px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-glow;
+  }
+}
+
+@layer components {
+  /* Matrix Rain Animation */
+  .matrix-rain {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  
+  .matrix-char {
+    position: absolute;
+    color: hsl(var(--primary));
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+    opacity: 0;
+    animation: rain linear infinite;
+  }
+  
+  /* Glowing Border Effect */
+  .glow-border {
+    position: relative;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card));
+    transition: all var(--transition-smooth);
+  }
+  
+  .glow-border::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, 
+      hsl(var(--primary) / 0.4), 
+      hsl(var(--primary-glow) / 0.2),
+      hsl(var(--primary) / 0.4)
+    );
+    border-radius: inherit;
+    opacity: 0;
+    z-index: -1;
+    transition: opacity var(--transition-smooth);
+  }
+  
+  .glow-border:hover::before {
+    opacity: 1;
+  }
+  
+  /* Terminal Effect */
+  .terminal-text {
+    font-family: 'Fira Code', monospace;
+    color: hsl(var(--primary));
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.5);
+  }
+  
+  /* Pulse Animation */
+  .pulse-glow {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  /* Scan Line Effect */
+  .scan-line {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .scan-line::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom,
+      transparent 0%,
+      hsl(var(--primary) / 0.03) 50%,
+      transparent 100%
+    );
+    animation: scan 4s linear infinite;
+  }
+}
+
+@layer utilities {
+  /* Text Glow */
+  .text-glow {
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.8),
+                 0 0 40px hsl(var(--primary) / 0.4);
+  }
+  
+  .text-glow-strong {
+    text-shadow: 0 0 10px hsl(var(--primary)),
+                 0 0 20px hsl(var(--primary)),
+                 0 0 30px hsl(var(--primary));
+  }
+  
+  /* Box Glow */
+  .box-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  /* Grid Background */
+  .grid-bg {
+    background-image: 
+      linear-gradient(hsl(var(--primary) / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+@keyframes rain {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Debug wrapper */
+[data-debug-wrapper="true"] {
+  display: contents !important;
+}
+
+[data-debug-wrapper="true"] > * {
+  margin-left: inherit;
+  margin-right: inherit;
+  margin-top: inherit;
+  margin-bottom: inherit;
+  padding-left: inherit;
+  padding-right: inherit;
+  padding-top: inherit;
+  padding-bottom: inherit;
+  column-gap: inherit;
+  row-gap: inherit;
+  gap: inherit;
+  border-left-width: inherit;
+  border-right-width: inherit;
+  border-top-width: inherit;
+  border-bottom-width: inherit;
+  border-left-style: inherit;
+  border-right-style: inherit;
+  border-top-style: inherit;
+  border-bottom-style: inherit;
+  border-left-color: inherit;
+  border-right-color: inherit;
+  border-top-color: inherit;
+  border-bottom-color: inherit;
+}
