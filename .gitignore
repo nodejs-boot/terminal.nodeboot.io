@@ -6,6 +6,7 @@ dist
 # Typescript
 *.tsbuildinfo
 *.d.ts
+build
 
 # Turborepo
 .turbo
