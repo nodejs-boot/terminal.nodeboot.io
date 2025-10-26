@@ -4,10 +4,12 @@ import { Logo } from '../components/Logo';
 import { ApiCard } from '../components/ApiCard';
 import { SystemStatus } from '../components/SystemStatus';
 import { TerminalPrompt } from '../components/TerminalPrompt';
-import { Terminal, Github, Book, Rocket, Shield } from 'lucide-react';
+import { Terminal, Github, Book, Rocket, Shield, Settings, AlertTriangle } from 'lucide-react';
+import { useConfig } from '../contexts/ConfigContext';
 
 export const AdminDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const { isConfigured, setShowConfigDialog, config } = useConfig();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -29,10 +31,10 @@ export const AdminDashboard = () => {
     {
       title: 'OpenAPI Specification',
       description: 'Download the complete OpenAPI/Swagger JSON specification',
-      href: '/api-docs/swagger.json',
+      href: '/openapi-spec',
       icon: 'spec',
       status: 'active',
-      isInternal: false,
+      isInternal: true,
     },
     {
       title: 'Actuator',
@@ -55,6 +57,26 @@ export const AdminDashboard = () => {
       {/* Scan Line Effect */}
       <div className="scan-line absolute inset-0" />
 
+      {/* Configuration Warning */}
+      {!isConfigured && (
+        <div className="relative z-20 bg-warning/10 border-b border-warning/20 backdrop-blur-sm">
+          <div className="container mx-auto px-6 py-3">
+            <div className="flex items-center gap-3 text-warning">
+              <AlertTriangle className="w-5 h-5" />
+              <span className="text-sm font-mono">
+                Configuration required - Set your API base URL and path to access endpoints
+              </span>
+              <button
+                onClick={() => setShowConfigDialog(true)}
+                className="ml-auto px-3 py-1 rounded bg-warning text-warning-foreground text-sm font-mono hover:bg-warning/90 transition-colors"
+              >
+                Configure Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="relative z-10">
         {/* Header */}
@@ -67,8 +89,30 @@ export const AdminDashboard = () => {
                   <Terminal className="w-4 h-4 text-primary" />
                   <span>{currentTime.toLocaleTimeString()}</span>
                 </div>
+
+                {/* Configuration Status & Settings */}
+                <div className="flex items-center gap-3">
+                  {isConfigured && config && (
+                    <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/50 border border-border">
+                      <div className="w-2 h-2 rounded-full bg-primary pulse-glow" />
+                      <span className="text-xs font-mono text-muted-foreground">
+                        {new URL(config.baseUrl).host}
+                      </span>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => setShowConfigDialog(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-md bg-secondary border border-border text-foreground hover:border-primary transition-all duration-300 hover:shadow-glow"
+                    title="Configuration Settings"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span className="hidden sm:inline text-sm font-mono">Settings</span>
+                  </button>
+                </div>
+
                 <a
-                  href="https://github.com/nodeboot"
+                  href="https://github.com/nodejs-boot"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 rounded-md bg-secondary border border-border text-foreground hover:border-primary transition-all duration-300 hover:shadow-glow"
@@ -149,8 +193,7 @@ export const AdminDashboard = () => {
                 <span>Powered by Nodeboot</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary pulse-glow" />
-                <span className="text-sm font-mono text-muted-foreground">System Online</span>
+                {/* ...existing footer content... */}
               </div>
             </div>
           </div>

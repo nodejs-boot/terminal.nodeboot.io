@@ -1,6 +1,7 @@
 /* Additional app-specific styles */
 .App {
   min-height: 100vh;
+  overflow: hidden;
 }
 
 /* Smooth page transitions */

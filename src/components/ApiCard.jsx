@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ExternalLink, Code, Activity, FileJson, Terminal } from 'lucide-react';
+import { useConfig } from '../contexts/ConfigContext';
 
 const iconMap = {
   swagger: Code,
@@ -11,18 +12,28 @@ const iconMap = {
 export const ApiCard = ({ title, description, href, icon, status = 'active', isInternal = false }) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
+  const { getFullUrl, isConfigured } = useConfig();
   const Icon = iconMap[icon] || Terminal;
+
+  // Get the full URL using the configuration
+  const fullUrl = isConfigured ? getFullUrl(href) : href;
 
   const handleClick = (e) => {
     if (isInternal) {
       e.preventDefault();
       navigate(href);
+    } else {
+      // For external links, use the full configured URL
+      if (isConfigured) {
+        e.preventDefault();
+        window.open(fullUrl, '_blank', 'noopener,noreferrer');
+      }
     }
   };
 
   return (
     <a
-      href={href}
+      href={fullUrl}
       target={isInternal ? undefined : "_blank"}
       rel={isInternal ? undefined : "noopener noreferrer"}
       className="group relative block cursor-pointer"
@@ -35,14 +46,14 @@ export const ApiCard = ({ title, description, href, icon, status = 'active', isI
         <div className="absolute top-4 right-4 flex items-center gap-2">
           <div className="relative">
             <div className={`w-2 h-2 rounded-full ${
-              status === 'active' ? 'bg-primary' : 'bg-muted-foreground'
+              status === 'active' && isConfigured ? 'bg-primary' : 'bg-muted-foreground'
             } pulse-glow`} />
             <div className={`absolute inset-0 w-2 h-2 rounded-full ${
-              status === 'active' ? 'bg-primary' : 'bg-muted-foreground'
+              status === 'active' && isConfigured ? 'bg-primary' : 'bg-muted-foreground'
             } animate-ping`} />
           </div>
           <span className="text-xs font-mono text-muted-foreground">
-            {status}
+            {isConfigured ? status : 'config needed'}
           </span>
         </div>
 
@@ -69,7 +80,7 @@ export const ApiCard = ({ title, description, href, icon, status = 'active', isI
         {/* Path */}
         <div className="mt-4 pt-4 border-t border-border">
           <code className="text-sm font-mono text-primary bg-secondary px-3 py-1.5 rounded border border-border inline-block group-hover:border-primary transition-colors">
-            {href}
+            {isConfigured ? fullUrl : href}
           </code>
         </div>
       </div>

@@ -4,10 +4,9 @@ import { MatrixRain } from '../components/MatrixRain';
 import { Logo } from '../components/Logo';
 import { JsonViewer } from '../components/JsonViewer';
 import { Tabs, TabsList, TabsTrigger, TabsContent, TabsContext } from '../components/Tabs';
-import { ArrowLeft, Activity, Info, GitBranch, Settings, Cpu, BarChart3, TrendingUp, Router, Layers, Workflow } from 'lucide-react';
+import { ArrowLeft, Activity, Info, GitBranch, Settings, Cpu, BarChart3, TrendingUp, Router, Layers, Workflow,RefreshCw } from 'lucide-react';
+import { useConfig } from '../contexts/ConfigContext';
 import axios from 'axios';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const actuatorEndpoints = [
   { path: '/actuator/info', label: 'Info', icon: Info },
@@ -25,180 +24,10 @@ const actuatorEndpoints = [
 const ActuatorContent = () => {
   const navigate = useNavigate();
   const { activeTab } = useContext(TabsContext);
+  const { getFullUrl, isConfigured } = useConfig();
   const [data, setData] = useState({});
   const [loading, setLoading] = useState({});
   const [errors, setErrors] = useState({});
-
-  // Mock data for demonstration (in production, this would fetch from actual endpoints)
-  const mockData = {
-    '/actuator/info': {
-      app: {
-        name: 'Nodeboot API',
-        description: 'Production-ready FastAPI application',
-        version: '1.0.0',
-        encoding: 'UTF-8'
-      },
-      build: {
-        artifact: 'nodeboot-api',
-        name: 'Nodeboot',
-        time: '2024-01-01T00:00:00Z',
-        version: '1.0.0'
-      },
-      framework: {
-        name: 'FastAPI',
-        version: '0.109.0'
-      }
-    },
-    '/actuator/health': {
-      status: 'UP',
-      components: {
-        database: {
-          status: 'UP',
-          details: {
-            database: 'MongoDB',
-            validationQuery: 'ping'
-          }
-        },
-        diskSpace: {
-          status: 'UP',
-          details: {
-            total: 1073741824000,
-            free: 536870912000,
-            threshold: 10485760
-          }
-        },
-        ping: {
-          status: 'UP'
-        }
-      }
-    },
-    '/actuator/git': {
-      git: {
-        branch: 'main',
-        commit: {
-          id: 'abc123def456',
-          'id.abbrev': 'abc123d',
-          time: '2024-01-01T00:00:00Z'
-        },
-        build: {
-          version: '1.0.0',
-          time: '2024-01-01T00:00:00Z'
-        },
-        dirty: false
-      }
-    },
-    '/actuator/config': {
-      propertySources: [
-        {
-          name: 'environment',
-          properties: {
-            PYTHON_VERSION: {
-              value: '3.11.0'
-            },
-            CORS_ORIGINS: {
-              value: '*'
-            },
-            DB_NAME: {
-              value: 'nodeboot'
-            }
-          }
-        }
-      ]
-    },
-    '/actuator/memory': {
-      memory: {
-        total: 16777216000,
-        available: 8388608000,
-        percent: 50.0,
-        used: 8388608000,
-        free: 8388608000
-      },
-      swap: {
-        total: 4294967296,
-        used: 1073741824,
-        free: 3221225472,
-        percent: 25.0
-      }
-    },
-    '/actuator/metrics': {
-      names: ['system.cpu.usage', 'system.memory.usage', 'process.uptime'],
-      metrics: {
-        'system.cpu.usage': {
-          value: 23.5,
-          unit: 'percent'
-        },
-        'system.memory.usage': {
-          value: 50.0,
-          unit: 'percent'
-        },
-        'process.uptime': {
-          value: 1234567.89,
-          unit: 'seconds'
-        }
-      }
-    },
-    '/actuator/prometheus': {
-      data: `# HELP system_cpu_usage The CPU usage
-# TYPE system_cpu_usage gauge
-system_cpu_usage 23.5
-
-# HELP system_memory_usage The memory usage
-# TYPE system_memory_usage gauge
-system_memory_usage 50.0
-
-# HELP system_memory_total Total memory
-# TYPE system_memory_total gauge
-system_memory_total 16777216000
-`,
-      contentType: 'text/plain'
-    },
-    '/actuator/controllers': {
-      controllers: [
-        {
-          handler: 'root',
-          method: 'GET',
-          path: '/api/',
-          produces: ['application/json']
-        },
-        {
-          handler: 'create_status_check',
-          method: 'POST',
-          path: '/api/status',
-          produces: ['application/json']
-        },
-        {
-          handler: 'get_status_checks',
-          method: 'GET',
-          path: '/api/status',
-          produces: ['application/json']
-        }
-      ]
-    },
-    '/actuator/interceptors': {
-      interceptors: [
-        {
-          name: 'CORSMiddleware',
-          type: 'CORS',
-          order: 1,
-          enabled: true
-        }
-      ]
-    },
-    '/actuator/middlewares': {
-      middlewares: [
-        {
-          name: 'CORSMiddleware',
-          type: 'starlette.middleware.cors.CORSMiddleware',
-          config: {
-            allow_credentials: true,
-            allow_origins: ['*'],
-            allow_methods: ['*'],
-            allow_headers: ['*']
-          }
-        }
-      ]
-    }
-  };
 
   // Fetch data for a specific endpoint
   const fetchEndpoint = async (endpoint) => {
@@ -206,22 +35,46 @@ system_memory_total 16777216000
     setLoading(prev => ({ ...prev, [key]: true }));
     setErrors(prev => ({ ...prev, [key]: null }));
 
+    if (!isConfigured) {
+      setErrors(prev => ({ ...prev, [key]: 'Configuration required. Please set your base URL and API path.' }));
+      setLoading(prev => ({ ...prev, [key]: false }));
+      return;
+    }
+
     try {
-      // Simulate API call with mock data for demo
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const mockResponse = mockData[endpoint.path];
-      if (mockResponse) {
-        setData(prev => ({ ...prev, [key]: mockResponse }));
+      const fullUrl = getFullUrl(endpoint.path);
+      console.log(`Fetching actuator data from: ${fullUrl}`);
+
+      const response = await axios.get(fullUrl, {
+        timeout: 10000,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      setData(prev => ({ ...prev, [key]: response.data }));
+    } catch (error) {
+      console.error(`Failed to fetch ${endpoint.path}:`, error);
+
+      let errorMessage = 'Failed to load data';
+
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timeout - The server took too long to respond';
+      } else if (error.response) {
+        // Server responded with error status
+        errorMessage = `Server error (${error.response.status}): ${error.response.statusText}`;
+        if (error.response.data?.message) {
+          errorMessage += ` - ${error.response.data.message}`;
+        }
+      } else if (error.request) {
+        // Request was made but no response received
+        errorMessage = 'Network error - Unable to connect to the local Node-Boot server. Please check if the service is running.';
       } else {
-        throw new Error('Endpoint not found');
+        // Something else happened
+        errorMessage = error.message || 'Unknown error occurred';
       }
       
-      // Uncomment below to use real API calls in production:
-      // const response = await axios.get(`${BACKEND_URL}${endpoint.path}`);
-      // setData(prev => ({ ...prev, [key]: response.data }));
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to load data';
       setErrors(prev => ({ ...prev, [key]: errorMessage }));
     } finally {
       setLoading(prev => ({ ...prev, [key]: false }));
@@ -234,13 +87,25 @@ system_memory_total 16777216000
     if (endpoint && !data[endpoint.path]) {
       fetchEndpoint(endpoint);
     }
-  }, [activeTab, data]);
+  }, [activeTab, data, isConfigured]);
 
   // Fetch first endpoint on mount
   useEffect(() => {
-    const firstEndpoint = actuatorEndpoints[0];
-    fetchEndpoint(firstEndpoint);
-  }, []);
+    if (isConfigured) {
+      const firstEndpoint = actuatorEndpoints[0];
+      fetchEndpoint(firstEndpoint);
+    }
+  }, [isConfigured]);
+
+  // Refresh current tab data
+  const refreshCurrentTab = () => {
+    const endpoint = actuatorEndpoints.find(e => e.label.toLowerCase() === activeTab);
+    if (endpoint) {
+      // Clear existing data to force refresh
+      setData(prev => ({ ...prev, [endpoint.path]: undefined }));
+      fetchEndpoint(endpoint);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -269,12 +134,22 @@ system_memory_total 16777216000
                 </button>
                 <Logo size="small" />
               </div>
-              <div className="flex items-center gap-2">
-                <Activity className="w-5 h-5 text-primary" />
-                <h1 className="text-xl font-bold font-mono">
-                  <span className="text-foreground">Actuator</span>
-                  <span className="text-primary text-glow ml-2">Monitor</span>
-                </h1>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={refreshCurrentTab}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md bg-secondary border border-border text-foreground hover:border-primary transition-all duration-300 hover:shadow-glow text-sm font-mono"
+                  disabled={!isConfigured}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Refresh
+                </button>
+                <div className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-primary" />
+                  <h1 className="text-xl font-bold font-mono">
+                    <span className="text-foreground">Actuator</span>
+                    <span className="text-primary text-glow ml-2">Monitor</span>
+                  </h1>
+                </div>
               </div>
             </div>
           </div>
@@ -288,6 +163,11 @@ system_memory_total 16777216000
               <p className="text-muted-foreground font-mono text-sm">
                 Monitor your application's health, metrics, and configuration
               </p>
+              {!isConfigured && (
+                <div className="mt-4 p-4 rounded-lg bg-warning/10 border border-warning/20 text-warning text-sm font-mono">
+                  ⚠ Configuration required - Please configure your base URL to access actuator endpoints
+                </div>
+              )}
             </div>
 
             {/* Tabs */}
@@ -309,7 +189,7 @@ system_memory_total 16777216000
             {actuatorEndpoints.map((endpoint) => {
               const key = endpoint.path;
               const tabValue = endpoint.label.toLowerCase();
-              
+
               return (
               <TabsContent key={tabValue} value={tabValue}>
                 <div className="space-y-4">
@@ -321,12 +201,18 @@ system_memory_total 16777216000
                       </div>
                       <div>
                         <h3 className="font-semibold text-foreground">{endpoint.label}</h3>
-                        <code className="text-xs font-mono text-primary">{endpoint.path}</code>
+                        <code className="text-xs font-mono text-primary">
+                          {isConfigured ? getFullUrl(endpoint.path) : endpoint.path}
+                        </code>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-primary pulse-glow" />
-                      <span className="text-xs font-mono text-muted-foreground">Active</span>
+                      <div className={`w-2 h-2 rounded-full ${
+                        isConfigured && !errors[key] ? 'bg-primary pulse-glow' : 'bg-muted-foreground'
+                      }`} />
+                      <span className="text-xs font-mono text-muted-foreground">
+                        {isConfigured ? (errors[key] ? 'Error' : 'Active') : 'Config needed'}
+                      </span>
                     </div>
                   </div>
 

@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 
-export const JsonViewer = ({ data, isLoading = false, error = null }) => {
+export const JsonViewer = ({ data, isLoading = false, error = null, title = "JSON Response" }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    const textToCopy = typeof data === 'string'
+      ? data
+      : JSON.stringify(data, null, 2);
+    navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   if (isLoading) {
     return (
-      <div className="glow-border rounded-lg p-8 bg-card">
+      <div className="glow-border rounded-lg bg-card h-full flex items-center justify-center min-h-[400px]">
         <div className="flex items-center justify-center gap-3">
           <div className="w-4 h-4 rounded-full bg-primary animate-pulse" />
           <div className="w-4 h-4 rounded-full bg-primary animate-pulse" style={{ animationDelay: '0.2s' }} />
@@ -25,8 +28,8 @@ export const JsonViewer = ({ data, isLoading = false, error = null }) => {
 
   if (error) {
     return (
-      <div className="glow-border rounded-lg p-6 bg-card border-destructive">
-        <div className="flex items-start gap-3">
+      <div className="glow-border rounded-lg bg-card border-destructive h-full flex items-center justify-center min-h-[400px]">
+        <div className="flex items-start gap-3 p-6">
           <div className="w-6 h-6 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0 mt-1">
             <span className="text-destructive text-sm">!</span>
           </div>
@@ -41,17 +44,17 @@ export const JsonViewer = ({ data, isLoading = false, error = null }) => {
 
   if (!data) {
     return (
-      <div className="glow-border rounded-lg p-6 bg-card">
+      <div className="glow-border rounded-lg bg-card h-full flex items-center justify-center min-h-[400px]">
         <p className="text-muted-foreground font-mono text-center">No data available</p>
       </div>
     );
   }
 
   return (
-    <div className="relative glow-border rounded-lg bg-card overflow-hidden">
+    <div className="glow-border rounded-lg bg-card overflow-hidden h-full flex flex-col min-h-[400px]">
       {/* Header with Copy Button */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-secondary/50">
-        <span className="text-xs font-mono text-muted-foreground">JSON Response</span>
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-secondary/50 flex-shrink-0">
+        <span className="text-xs font-mono text-muted-foreground">{title}</span>
         <button
           onClick={handleCopy}
           className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary border border-border hover:border-primary text-foreground text-xs font-mono transition-all duration-300"
@@ -71,9 +74,11 @@ export const JsonViewer = ({ data, isLoading = false, error = null }) => {
       </div>
 
       {/* JSON Content */}
-      <pre className="p-6 overflow-x-auto text-sm font-mono">
-        <code className="text-foreground">{syntaxHighlight(data)}</code>
-      </pre>
+      <div className="flex-1 overflow-auto p-4" style={{maxHeight: "100vh"}}>
+        <pre className="p-6 text-sm font-mono whitespace-pre-wrap">
+          <code className="text-foreground">{syntaxHighlight(data)}</code>
+        </pre>
+      </div>
     </div>
   );
 };
