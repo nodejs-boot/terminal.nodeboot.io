@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket = "nodeboot-tf-state"
+    bucket = "nodeboot-terminal-tf-state"
     key    = "nodeboot-terminal-landing.tfstate"
     region = "us-east-1"
   }
